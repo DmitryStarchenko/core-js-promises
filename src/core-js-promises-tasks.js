@@ -36,8 +36,13 @@ function getPromise(number) {
  * Promise.resolve('success') => promise that will be fulfilled with 'success' value
  * Promise.reject('fail')     => promise that will be fulfilled with 'fail' value
  */
-function getPromiseResult(source) {
-  return source.then(() => 'success').catch(() => 'fail');
+async function getPromiseResult(source) {
+  try {
+    await source;
+    return 'success';
+  } catch {
+    return 'fail';
+  }
 }
 
 /**
@@ -163,8 +168,17 @@ function getAllOrNothing(promises) {
  * [Promise.resolve(1), Promise.resolve(2), Promise.resolve(3)] => Promise fulfilled with [1, 2, 3]
  * [Promise.resolve(1), Promise.reject(2), Promise.resolve(3)]  => Promise fulfilled with [1, null, 3]
  */
-function getAllResult(/* promises */) {
-  throw new Error('Not implemented');
+function getAllResult(promises) {
+  return new Promise((resolve) => {
+    const result = [];
+    promises.forEach((promise) => {
+      promise.then(
+        (value) => result.push(value),
+        () => result.push(null)
+      );
+    });
+    resolve(result);
+  });
 }
 
 /**
@@ -185,8 +199,12 @@ function getAllResult(/* promises */) {
  * [promise1, promise4, promise3] => Promise.resolved('104030')
  * [promise1, promise4, promise3, promise2] => Promise.resolved('10403020')
  */
-function queuePromises(/* promises */) {
-  throw new Error('Not implemented');
+function queuePromises(promises) {
+  return promises.reduce(async (chain, promise) => {
+    const resp = await chain;
+    const value = await promise;
+    return resp + value;
+  }, Promise.resolve(''));
 }
 
 module.exports = {
